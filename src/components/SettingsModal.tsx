@@ -22,6 +22,7 @@ interface Settings {
       appKey: string;
     };
   };
+  theme?: 'dark' | 'light';
 }
 
 interface SettingsModalProps {
@@ -41,7 +42,8 @@ const defaultSettings: Settings = {
   },
   asr: {
     provider: 'local'
-  }
+  },
+  theme: 'dark'
 };
 
 function SettingsModal({ isOpen, onClose, onSave, initialSettings = defaultSettings, onTestConnection }: SettingsModalProps) {
@@ -92,6 +94,13 @@ function SettingsModal({ isOpen, onClose, onSave, initialSettings = defaultSetti
         asr: newAsr
       };
     });
+  };
+
+  const handleThemeChange = (value: 'dark' | 'light') => {
+    setSettings(prev => ({
+      ...prev,
+      theme: value
+    }));
   };
 
   const handleTestConnection = async () => {
@@ -262,6 +271,21 @@ function SettingsModal({ isOpen, onClose, onSave, initialSettings = defaultSetti
                 />
               </div>
             )}
+          </div>
+
+          <div className="section">
+            <h3>外观设置</h3>
+
+            <div className="form-group">
+              <label>主题</label>
+              <select
+                value={settings.theme || 'dark'}
+                onChange={e => handleThemeChange(e.target.value as 'dark' | 'light')}
+              >
+                <option value="dark">深色主题</option>
+                <option value="light">浅色主题</option>
+              </select>
+            </div>
           </div>
 
           {testResult && (

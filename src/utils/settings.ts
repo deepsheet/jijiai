@@ -20,6 +20,7 @@ export interface Settings {
       appKey: string;
     };
   };
+  theme?: 'dark' | 'light';
 }
 
 const SETTINGS_KEY = 'jijihuashu_settings';
@@ -33,7 +34,8 @@ const defaultSettings: Settings = {
   },
   asr: {
     provider: 'web'
-  }
+  },
+  theme: 'dark'
 };
 
 export async function loadSettings(): Promise<Settings> {

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,5 +12,10 @@ export default defineConfig({
   server: {
     port: 5174,
     strictPort: true, // 如果端口被占用则退出，而不是尝试其他端口
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
 })

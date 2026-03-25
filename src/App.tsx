@@ -5,6 +5,10 @@ import SuggestionModal from './components/SuggestionModal';
 import { loadSettings, saveSettings, type Settings as AppSettings } from './utils/settings';
 import { AliyunASR } from './utils/aliyun-asr';
 import { LocalASR } from './utils/local-asr';
+import { ruleEngine, type MatchResult } from './utils/rule-engine';
+
+// 规则引擎匹配结果类型 (复用 rule-engine.ts 的类型)
+type RuleMatchResult = MatchResult;
 
 // 定义类型
 interface TranscriptLine {
@@ -19,6 +23,17 @@ interface Keyword {
   text: string;
   category: string;
   suggestions: string[];
+}
+
+// 规则引擎话术项
+interface RuleSuggestion {
+  id: string;
+  tag: string;
+  response: string;
+  icon: string;
+  keyword: string;
+  displayText: string;
+  isTyping: boolean;
 }
 
 // 模拟关键词数据库
@@ -70,6 +85,7 @@ function App() {
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
+  const [ruleSuggestions, setRuleSuggestions] = useState<RuleSuggestion[]>([]);
   const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
   const [selectedKeyword, setSelectedKeyword] = useState<Keyword | null>(null);
   const [settings, setSettings] = useState<AppSettings>({
@@ -81,7 +97,8 @@ function App() {
     },
     asr: {
       provider: 'web'
-    }
+    },
+    theme: 'dark'
   });
   const [callStatus, setCallStatus] = useState<'idle' | 'waiting' | 'no_speech' | 'speech_detected' | 'transcribing' | 'success' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState('点击"开始通话"开始识别');
@@ -96,6 +113,7 @@ function App() {
   const lastFinalTextRef = useRef<string>('');
   const currentInterimTextRef = useRef<string>('');
   const transcriptRef = useRef<TranscriptLine[]>([]);
+  const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const SILENCE_THRESHOLD = 2000; // 2秒停顿阈值
 
   // 加载保存的设置
@@ -137,6 +155,38 @@ function App() {
     transcriptRef.current = transcript;
   }, [transcript]);
 
+  // 处理话术打字机效果
+  useEffect(() => {
+    ruleSuggestions.forEach(suggestion => {
+      if (suggestion.isTyping && suggestion.displayText.length < suggestion.response.length) {
+        // 清除之前的定时器
+        if (typingTimeoutsRef.current.has(suggestion.id)) {
+          clearTimeout(typingTimeoutsRef.current.get(suggestion.id));
+        }
+        
+        const timeout = setTimeout(() => {
+          setRuleSuggestions(prev => prev.map(s => {
+            if (s.id === suggestion.id) {
+              const nextChar = suggestion.response[s.displayText.length];
+              return {
+                ...s,
+                displayText: s.displayText + nextChar,
+                isTyping: s.displayText.length + 1 < s.response.length
+              };
+            }
+            return s;
+          }));
+        }, 30);
+        
+        typingTimeoutsRef.current.set(suggestion.id, timeout);
+      }
+    });
+
+    return () => {
+      typingTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+    };
+  }, [ruleSuggestions]);
+
   // 开始通话
   const startCall = () => {
     setIsCallActive(true);
@@ -149,6 +199,8 @@ function App() {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
     }
+    // 清空规则引擎话术
+    setRuleSuggestions([]);
 
     const initialTranscript: TranscriptLine[] = [
       {
@@ -212,7 +264,6 @@ function App() {
     }
     
     // 默认使用 Web Speech API（web 选项）
-
     // 检查浏览器支持
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       console.error('浏览器不支持语音识别 API');
@@ -268,7 +319,7 @@ function App() {
     
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = false; // 尝试不连续模式，Mac 上可能有问题
+    recognitionRef.current.continuous = false;
     recognitionRef.current.interimResults = true;
     recognitionRef.current.lang = 'zh-CN';
     console.log('语音识别配置:', {
@@ -331,7 +382,7 @@ function App() {
 
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+          finalTranscript +=event.results[i][0].transcript;
         } else {
           interimTranscript += event.results[i][0].transcript;
         }
@@ -485,7 +536,6 @@ function App() {
 
     if (timeSinceLastSpeech >= SILENCE_THRESHOLD) {
       // 停顿超过阈值，清除段落状态，准备开始新段落
-      // 注意：不在这里清除 currentInterimLineIdRef.current，让 handleTranscript 处理
     }
   };
 
@@ -593,19 +643,52 @@ function App() {
       });
     }
 
-    // 如果是最终结果，更新最终文本状态并识别关键词
-    if (isFinal) {
-      lastFinalTextRef.current = currentInterimTextRef.current;
-      identifyKeywords(currentInterimTextRef.current);
+    // 每次文本更新时都进行关键词检测（包括中间结果）
+    identifyKeywords(processedText);
+  };
 
-      // 最终结果后重置当前段落状态，等待下一段落
-      currentInterimLineIdRef.current = null;
-      currentInterimTextRef.current = '';
+  // 调用前端规则引擎检测关键词
+  const detectWithRuleEngine = (text: string) => {
+    try {
+      // 循环检测所有匹配的关键词
+      let result;
+      do {
+        result = ruleEngine.detect(text);
+        if (result && result.matched) {
+          console.log('[规则引擎] 匹配成功:', result.tag, '-', result.keyword);
+          
+          // 保存当前结果到局部变量，避免闭包问题
+          const currentResult = { ...result };
+          
+          // 检查是否已显示过这个标签（防重复）
+          setRuleSuggestions(prev => {
+            if (prev.find(s => s.tag === currentResult.tag)) {
+              return prev;
+            }
+            
+            const newSuggestion: RuleSuggestion = {
+              id: `${currentResult.tag}-${currentResult.timestamp}`,
+              tag: currentResult.tag,
+              response: currentResult.response,
+              icon: currentResult.icon,
+              keyword: currentResult.keyword,
+              displayText: '',
+              isTyping: true
+            };
+            
+            return [...prev, newSuggestion];
+          });
+        }
+      } while (result && result.matched);
+    } catch (error) {
+      console.error('[规则引擎] 检测失败:', error);
+      // 如果前端规则引擎失败，降级到关键词匹配
+      identifyKeywordsFallback(text);
     }
   };
 
-  // 识别关键词
-  const identifyKeywords = (text: string) => {
+  // 前端备用关键词匹配（当 Rust 不可用时）
+  const identifyKeywordsFallback = (text: string) => {
     const foundKeywords: Keyword[] = [];
     
     keywordDatabase.forEach(keyword => {
@@ -625,6 +708,12 @@ function App() {
         return newKeywords;
       });
     }
+  };
+
+  // 识别关键词（优先使用规则引擎）
+  const identifyKeywords = (text: string) => {
+    // 优先使用 Rust 规则引擎
+    detectWithRuleEngine(text);
   };
 
   // 选择关键词
@@ -760,6 +849,17 @@ function App() {
     };
   };
 
+  // 应用主题
+  useEffect(() => {
+    const theme = settings.theme || 'dark';
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('light-theme');
+    } else {
+      root.classList.remove('light-theme');
+    }
+  }, [settings.theme]);
+
   return (
     <div className="app">
       <header className="header">
@@ -810,11 +910,40 @@ function App() {
         <section className="ai-suggestions">
           <div className="ai-suggestions-header">
             <h2>AI 话术建议</h2>
+            {ruleSuggestions.length > 0 && (
+              <span className="rule-badge">规则引擎</span>
+            )}
           </div>
           <div className="suggestion-list">
-            {keywords.length === 0 ? (
+            {/* 规则引擎匹配结果显示 */}
+            {ruleSuggestions.length > 0 && (
+              <div className="rule-suggestions">
+                {ruleSuggestions.map(suggestion => (
+                  <div key={suggestion.id} className="rule-item">
+                    <div className="rule-header">
+                      <span className="rule-tag">{suggestion.tag}</span>
+                      <span className="rule-keyword">关键词: {suggestion.keyword}</span>
+                    </div>
+                    <div className="rule-response">
+                      {suggestion.displayText}
+                      {suggestion.isTyping && <span className="typing-cursor">|</span>}
+                    </div>
+                    <button 
+                      className="rule-copy-btn"
+                      onClick={() => handleSelectSuggestion(suggestion.response)}
+                    >
+                      使用此话术
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* 原有关键词匹配结果 */}
+            {keywords.length === 0 && ruleSuggestions.length === 0 ? (
               <div className="suggestion-empty">
-                <p>正在监听中，当客户提到关键词时会显示建议...</p>
+                <p>🔴 等待客户发言...</p>
+                <p className="empty-hint">当检测到风险关键词时，将自动显示建议话术</p>
               </div>
             ) : (
               <KeywordDisplay 

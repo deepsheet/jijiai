@@ -1,0 +1,14 @@
+{
+  "llm": {
+    "provider": "deepseek",
+    "baseUrl": "https://api.deepseek.com/v1",
+    "apiKey": "YOUR_DEEPSEEK_API_KEY",
+    "model": "deepseek-chat"
+  },
+  "asr": {
+    "provider": "aliyun",
+    "accessKeyId": "YOUR_ALIYUN_ACCESS_KEY_ID",
+    "accessKeySecret": "YOUR_ALIYUN_ACCESS_KEY_SECRET",
+    "appKey": "IJy2Oaj6mozryBZo"
+  }
+}

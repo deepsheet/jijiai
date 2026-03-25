@@ -6,9 +6,35 @@ const querystring = require('querystring');
 const app = express();
 const PORT = 3001;
 
-// 阿里云配置
-const ACCESS_KEY_ID = 'YOUR_ALIYUN_ACCESS_KEY_ID';
-const ACCESS_KEY_SECRET = 'YOUR_ALIYUN_ACCESS_KEY_SECRET';
+// 从配置文件读取阿里云配置
+const fs = require('fs');
+const path = require('path');
+
+function loadAliyunConfig() {
+  try {
+    const configPath = path.join(__dirname, 'public', 'config.json');
+    const configData = fs.readFileSync(configPath, 'utf8');
+    const config = JSON.parse(configData);
+
+    if (!config.asr || !config.asr.accessKeyId || !config.asr.accessKeySecret) {
+      throw new Error('配置文件缺少阿里云 ASR 配置 (asr.accessKeyId, asr.accessKeySecret)');
+    }
+
+    console.log('阿里云配置加载成功');
+    return {
+      accessKeyId: config.asr.accessKeyId,
+      accessKeySecret: config.asr.accessKeySecret
+    };
+  } catch (error) {
+    console.error('加载配置文件失败:', error.message);
+    console.error('请确保 public/config.json 存在且包含正确的阿里云 ASR 配置');
+    process.exit(1);
+  }
+}
+
+const aliyunConfig = loadAliyunConfig();
+const ACCESS_KEY_ID = aliyunConfig.accessKeyId;
+const ACCESS_KEY_SECRET = aliyunConfig.accessKeySecret;
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');

@@ -10,6 +10,16 @@ if [ -f "./server.cjs" ]; then
   sleep 1
 fi
 
+# 确保 5174 端口可用
+echo "检查端口 5174..."
+PORT_PID=$(lsof -ti:5174 2>/dev/null)
+if [ ! -z "$PORT_PID" ]; then
+  echo "发现进程占用端口 5174，PID: $PORT_PID"
+  kill -9 $PORT_PID 2>/dev/null
+  sleep 1
+  echo "已清理端口 5174"
+fi
+
 # 启动服务器
 echo "启动服务器..."
 node server.cjs &

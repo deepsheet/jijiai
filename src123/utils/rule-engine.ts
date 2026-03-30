@@ -186,10 +186,14 @@ export class RuleEngine {
    */
   public detect(text: string): MatchResult | null {
     if (!this.ac) {
+      console.warn('[RuleEngine] Aho-Corasick 自动机未初始化');
       return null;
     }
 
+    console.log('[RuleEngine] 检测文本:', text);
     const matchedRuleIndices = this.ac.findMatches(text);
+    
+    console.log('[RuleEngine] 匹配到的规则索引:', matchedRuleIndices);
     
     if (matchedRuleIndices.length === 0) {
       return null;
@@ -198,13 +202,15 @@ export class RuleEngine {
     // 获取第一个匹配的规则
     const ruleIdx = matchedRuleIndices[0];
     const rule = this.rules[ruleIdx];
+    
+    console.log('[RuleEngine] 匹配规则:', rule.tag, '关键词:', rule.keywords);
 
     // 检查防抖动（按标签去重）
     const lastTime = this.lastTriggered.get(rule.tag);
     const now = Date.now();
     
     if (lastTime && (now - lastTime) < this.debounceMs) {
-      console.log('[RuleEngine] 防抖动:', rule.tag, '将在', Math.ceil((this.debounceMs - (now - lastTime)) / 1000), '秒后可用');
+      console.log('[RuleEngine] 防抖动拦截:', rule.tag, '将在', Math.ceil((this.debounceMs - (now - lastTime)) / 1000), '秒后可用');
       return null;
     }
 
@@ -223,7 +229,7 @@ export class RuleEngine {
       matchedKeyword = rule.keywords[0];
     }
 
-    return {
+    const result: MatchResult = {
       matched: true,
       tag: rule.tag,
       response: rule.response,
@@ -231,6 +237,9 @@ export class RuleEngine {
       keyword: matchedKeyword,
       timestamp: now
     };
+    
+    console.log('[RuleEngine] 返回匹配结果:', result);
+    return result;
   }
 
   /**

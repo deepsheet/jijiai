@@ -1,0 +1,195 @@
+<html lang="zh-CN" class="light"><head>
+		<meta charset="utf-8">
+		<link rel="icon" type="image/png" href="http://localhost:8080/static/favicon.png" crossorigin="use-credentials">
+		<link rel="icon" type="image/png" href="http://localhost:8080/static/favicon-96x96.png" sizes="96x96" crossorigin="use-credentials">
+		<link rel="icon" type="image/svg+xml" href="http://localhost:8080/static/favicon.svg" crossorigin="use-credentials">
+		<link rel="shortcut icon" href="http://localhost:8080/static/favicon.ico" crossorigin="use-credentials">
+		<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:8080/static/apple-touch-icon.png" crossorigin="use-credentials">
+		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+		<meta name="theme-color" content="#ffffff">
+		<meta name="robots" content="noindex,nofollow">
+
+		<script src="/static/loader.js" defer="" crossorigin="use-credentials"></script>
+		<link rel="stylesheet" href="/static/custom.css" crossorigin="use-credentials">
+
+		<script>
+			function resizeIframe(obj) {
+				obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
+			}
+		</script>
+
+		<script>
+			// On page load or when changing themes, best to add inline in `head` to avoid FOUC
+			(() => {
+				const metaThemeColorTag = document.querySelector('meta[name="theme-color"]');
+				const prefersDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+				if (!localStorage?.theme) {
+					localStorage.theme = 'system';
+				}
+
+				if (localStorage.theme === 'system') {
+					document.documentElement.classList.add(prefersDarkTheme ? 'dark' : 'light');
+					metaThemeColorTag.setAttribute('content', prefersDarkTheme ? '#171717' : '#ffffff');
+				} else if (localStorage.theme === 'oled-dark') {
+					document.documentElement.style.setProperty('--color-gray-800', '#101010');
+					document.documentElement.style.setProperty('--color-gray-850', '#050505');
+					document.documentElement.style.setProperty('--color-gray-900', '#000000');
+					document.documentElement.style.setProperty('--color-gray-950', '#000000');
+					document.documentElement.classList.add('dark');
+					metaThemeColorTag.setAttribute('content', '#000000');
+				} else if (localStorage.theme === 'light') {
+					document.documentElement.classList.add('light');
+					metaThemeColorTag.setAttribute('content', '#ffffff');
+				} else if (localStorage.theme === 'her') {
+					document.documentElement.classList.add('her');
+					metaThemeColorTag.setAttribute('content', '#983724');
+				} else {
+					document.documentElement.classList.add('dark');
+					metaThemeColorTag.setAttribute('content', '#171717');
+				}
+
+				window.matchMedia('(prefers-color-scheme: dark)').addListener((e) => {
+					if (localStorage.theme === 'system') {
+						if (e.matches) {
+							document.documentElement.classList.add('dark');
+							document.documentElement.classList.remove('light');
+							metaThemeColorTag.setAttribute('content', '#171717');
+						} else {
+							document.documentElement.classList.add('light');
+							document.documentElement.classList.remove('dark');
+							metaThemeColorTag.setAttribute('content', '#ffffff');
+						}
+					}
+				});
+				const isDarkMode = document.documentElement.classList.contains('dark');
+
+				const logo = document.createElement('img');
+				logo.id = 'logo';
+				logo.style =
+					'position: absolute; width: auto; height: 6rem; top: 44%; left: 50%; transform: translateX(-50%); display:block;';
+				logo.src = isDarkMode ? '/static/splash-dark.png' : '/static/splash.png';
+
+				document.addEventListener('DOMContentLoaded', function () {
+					const splash = document.getElementById('splash-screen');
+					if (document.documentElement.classList.contains('her')) {
+						return;
+					}
+
+					if (splash) splash.prepend(logo);
+				});
+			})();
+		</script>
+
+		<title>
+		Open WebUI
+	</title>
+
+		<link href="/_app/immutable/entry/start.D9SdK2ci.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/Co1EjttT.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/Coqcv2G2.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/DIeogL5L.js" rel="modulepreload">
+		<link href="/_app/immutable/entry/app.DsaVHpyl.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/C1FmrZbK.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/B5jxyMe3.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/CWj6FrbW.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/CZeb1kGS.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/SJtPFgZZ.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/a0CMuves.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/Bbm3UalE.js" rel="modulepreload">
+		
+	<link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/nodes/0.BcGH-gWI.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/69_IOA4Y.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DWkfIKkC.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/6VWT9yGr.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/deyIpViy.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CKxXGAmO.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BcxXcwBL.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/tHRDxDNk.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DDjvPYNk.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/X-6ks5ij.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/r13Ve7cv.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/Toaster.DKF17Rty.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/D_5ze4Ip.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DfQ7R3VT.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CVAT0o-h.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BAJYHot8.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BC4znSyB.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BhRwIPch.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DeGKCl7B.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/B2185GOa.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BT28bLwl.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/QjJsDpFa.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DzUiAr_m.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BQgai-73.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/C8n1r2B8.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/z9e2il0R.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Drz_d-rN.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BvrkGmLi.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/Confetti.VzC_X4OY.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CJosuLQF.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Bfc47y5P.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/D-VUtxN_.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BgtpMKW3.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/2XBIlFOv.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/C8eAJkD3.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DAeEu1yk.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CiB29Aqe.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CXaewINb.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CXfl2WC2.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/C8pr_w6-.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/Modal.CSlFhZkq.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/B4SeOjdr.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CVsttVHz.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/D40FHFtv.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/0.CK2XfXlw.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/nodes/1.CtAr67QR.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/nodes/2.9HQCWVkz.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CsWaRabF.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Dp1V1uLE.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CdM01UIm.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/AKf-eXcB.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/cOki0-ZD.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/5Vjw72sW.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/i8IuCWOI.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/D-zjTP5t.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BxArzDsK.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/ConfirmDialog.DaQE45yT.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CZPmclye.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DPUZC83J.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/FpEajC7o.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/GPQ0Tcuu.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CztEina0.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/4plv7jKU.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Vcq4gwWv.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DXikekPr.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/C1tPjzQu.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DO_03rTE.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/ChpKpiCH.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DTW07mpi.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/UserMenu.X_EDr3Bi.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/6s03TjWM.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DJKaJ001.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/-lA2rsgN.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BkHaNtWp.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CRR8qD8j.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/TD-B-ifh.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DChWzy1r.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Cmg-w5ZB.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DKMts4g1.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/96tRlAae.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DMHCIhiy.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BiOLd_Qx.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/ClRHKipe.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/32eSTScR.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Cxwn1van.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DNmeEocz.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/UQ3DEqGd.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BevpwmEE.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/B1_D1_CQ.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DfIywdCw.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Bj-KHVj2.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/Markdown.BSTcku12.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/awbkvHVu.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DFS28ayh.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/FileItem.CNBty9SB.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DyTEPLdn.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/B_XScLdw.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CugL20J9.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/PDYMgqyY.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/C0XzfapY.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/Skeleton.D68k68zP.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CpZMVrgX.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BvfCNb-v.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/mFo1PGge.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/B7FNS67a.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DLj36zCE.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/B_K31KBh.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DCzIEViV.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Ch1WBRTM.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DV4B7_Gg.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/Messages.BPOsJAE0.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/LtETRKls.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CR2-XO0Q.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/tm0J-NmY.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BihUF1wl.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DOHGzOJ9.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DOBP-qk8.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DWqdaHH9.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DKP2AIzT.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/8v92GsAS.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CoIroZUb.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/AKARwgDV.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DF2lQ1ue.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/WedZISDj.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/Cv0MkXiz.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DpYrGa_c.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/aX9M0Q4I.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/B5Z6ST1B.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/gcBL7UDZ.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/2.BpqbiIOH.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/nodes/8.CmYINwWw.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DTOphGWA.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DoljadvG.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/LcNoXE1J.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DtRxGYbY.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/OyeuIL1b.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DK-f1HNc.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/D6b6V6XQ.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BH6dtXXg.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DIncmMk5.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/a667zsp6.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BAeJYrGN.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DW_BhSgO.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/RichTextInput.D0CG4PmL.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BU76a_Bz.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/28.tn0RQdqM.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/DeoPvtqD.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/Drawer.BBo9ZRVf.css"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BHqqR_Qf.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/COZ-pT02.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/D9uaFzLi.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/BX5WB7ra.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/CGEFt5-M.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/C-V_EQOO.js"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/chunks/D65UMayp.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/Chat.BfPPNywX.css"><link crossorigin="anonymous" rel="icon" href="http://localhost:8080/static/favicon.png"> <meta name="apple-mobile-web-app-title" content="Open WebUI"> <meta name="description" content="Open WebUI"> <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" crossorigin="use-credentials" title="Open WebUI"><link rel="modulepreload" as="script" crossorigin="" href="http://localhost:8080/_app/immutable/nodes/47.DGWywDad.js"><link rel="stylesheet" crossorigin="" href="http://localhost:8080/_app/immutable/assets/47.Gsrgvs3s.css"></head>
+
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">
+			<script>
+				{
+					__sveltekit_1qkh3n1 = {
+						base: ""
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("/_app/immutable/entry/start.D9SdK2ci.js"),
+						import("/_app/immutable/entry/app.DsaVHpyl.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
+		<!----><!----><!----><!----> <!----><!----><!----><!----><!----><!----><!----> <div class="w-full h-screen max-h-[100dvh] text-white relative" id="auth-page"><div class="w-full h-full absolute top-0 left-0 bg-white dark:bg-black"></div> <div class="w-full absolute top-0 left-0 right-0 h-8 drag-region"></div> <div class="fixed bg-transparent min-h-screen w-full flex justify-center font-primary z-50 text-black dark:text-white" id="auth-container"><div class="w-full px-10 min-h-screen flex flex-col text-center"><div class="my-auto flex flex-col justify-center items-center"><div class=" sm:max-w-md my-auto pb-10 w-full dark:text-gray-100"><!----> <form class=" flex flex-col justify-center"><div class="mb-1"><div class=" text-2xl font-medium">登录 Open WebUI<!----></div> <!----></div> <div class="flex flex-col mt-4"><!----> <div class="mb-2"><label for="email" class="text-sm font-medium text-left mb-1 block">电子邮箱</label> <input type="email" id="email" class="my-0.5 w-full text-sm outline-hidden bg-transparent placeholder:text-gray-300 dark:placeholder:text-gray-600" autocomplete="email" name="email" required="" placeholder="输入您的电子邮箱"></div><!----> <div><label for="password" class="text-sm font-medium text-left mb-1 block">密码</label> <div class="flex flex-1 bg-transparent"><label class="sr-only" for="password">输入您的密码</label><!----> <input id="password" class="w-full text-sm py-0.5 bg-transparent password  outline-hidden placeholder:text-gray-300 dark:placeholder:text-gray-600" placeholder="输入您的密码" type="password" required="" autocomplete="current-password"> <button type="button" class="pl-1.5  transition bg-transparent" aria-pressed="false" aria-label="在用户界面中显示密码"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4" aria-hidden="true"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path fill-rule="evenodd" d="M1.38 8.28a.87.87 0 0 1 0-.566 7.003 7.003 0 0 1 13.238.006.87.87 0 0 1 0 .566A7.003 7.003 0 0 1 1.379 8.28ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" clip-rule="evenodd"></path></svg><!----></button></div><!----></div> <!----></div><!----> <div class="mt-5"><!----><button class="bg-gray-700/5 hover:bg-gray-700/10 dark:bg-gray-100/5 dark:hover:bg-gray-100/10 dark:text-gray-300 dark:hover:text-white transition w-full rounded-full font-medium text-sm py-2.5" type="submit">登录</button> <!----><!----></div></form> <!----> <!----></div> <!----></div><!----></div></div> <div class="fixed m-10 z-50"><div class="flex space-x-2"><div class=" self-center"><img id="logo" crossorigin="anonymous" class=" w-6 rounded-full" alt="" src="/static/favicon.png"></div></div></div><!----><!----></div><!----> <!----> <!----><!----><!----> <div id="svelte-announcer" aria-live="assertive" aria-atomic="true" style="position: absolute; left: 0; top: 0; clip: rect(0 0 0 0); clip-path: inset(50%); overflow: hidden; white-space: nowrap; width: 1px; height: 1px">Open WebUI<!----></div><!----></div>
+
+		
+	
+
+	<style type="text/css" nonce="">
+		html {
+			overflow-y: hidden !important;
+			overscroll-behavior-y: none;
+		}
+
+		#splash-screen {
+			background: #fff;
+		}
+
+		html.dark #splash-screen {
+			background: #000;
+		}
+
+		html.her #splash-screen {
+			background: #983724;
+		}
+
+		#logo-her {
+			display: none;
+		}
+
+		#progress-background {
+			display: none;
+		}
+
+		#progress-bar {
+			display: none;
+		}
+
+		html.her #logo {
+			display: none;
+		}
+
+		html.her #logo-her {
+			display: block;
+			filter: invert(1);
+		}
+
+		html.her #progress-background {
+			display: block;
+		}
+
+		html.her #progress-bar {
+			display: block;
+		}
+
+		@media (max-width: 24rem) {
+			html.her #progress-background {
+				display: none;
+			}
+
+			html.her #progress-bar {
+				display: none;
+			}
+		}
+
+		@keyframes pulse {
+			50% {
+				opacity: 0.65;
+			}
+		}
+
+		.animate-pulse-fast {
+			animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		}
+	</style>
+
+</body></html>

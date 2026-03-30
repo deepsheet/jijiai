@@ -678,112 +678,270 @@ function App() {
 
     if (timeSinceLastSpeech >= SILENCE_THRESHOLD) {
       // 停顿超过阈值，清除段落状态，准备开始新段落
+      console.log('静音超时，重置段落状态');
+      currentInterimLineIdRef.current = null;
+      currentInterimTextRef.current = '';
+      // 注意：不重置 lastFinalTextRef，我们需要用它来检测历史文本
     }
   };
 
   // 处理转录文本
-  const handleTranscript = (text: string, _isFinal: boolean = false) => {
+  const handleTranscript = (text: string, isFinal: boolean = false) => {
     const now = Date.now();
+    console.log('[handleTranscript] 输入:', { text, isFinal, now });
 
     // 清除之前的停顿检测定时器
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
     }
 
-    // 检查是否需要开始新段落：距离上次语音活动超过阈值
-    const timeSinceLastSpeech = now - lastSpeechTimeRef.current;
-    const shouldStartNewParagraph = timeSinceLastSpeech >= SILENCE_THRESHOLD;
+    // 计算距离上次活动的时间
+    const timeSinceLastActivity = now - lastSpeechTimeRef.current;
 
-    // 更新最后语音活动时间
+    // 检查是否需要因为停顿而开始新句子
+    let hadLongSilence = false;
+    if (timeSinceLastActivity >= SILENCE_THRESHOLD) {
+      hadLongSilence = true;
+      console.log(`[停顿检测] 距离上次活动 ${timeSinceLastActivity}ms，超过阈值 ${SILENCE_THRESHOLD}ms，强制开始新句子`);
+      currentInterimLineIdRef.current = null;
+      currentInterimTextRef.current = '';
+      // 注意：不重置 lastFinalTextRef，我们需要用它来检测是否包含历史文本
+    }
+
+    // 更新最后活动时间（任何语音活动，包括中间结果）
     lastSpeechTimeRef.current = now;
 
-    // 设置新的停顿检测定时器
+    // 设置新的停顿检测定时器（用于静音超时重置）
     silenceTimerRef.current = setTimeout(() => {
       checkSilenceAndReset();
     }, SILENCE_THRESHOLD + 100);
 
-    // 如果需要开始新段落，重置状态
-    if (shouldStartNewParagraph) {
-      currentInterimLineIdRef.current = null;
-      currentInterimTextRef.current = '';
-    }
-
-    // 获取所有客户行，用于检查文本是否包含历史内容
-    const customerLines = transcriptRef.current.filter(line => line.speaker === 'customer');
-
-    // 从文本中移除所有历史段落内容（避免ASR返回累积文本）
+    // 处理文本：避免重复累积
     let processedText = text;
+    console.log('[handleTranscript] 原始文本:', processedText);
 
-    if (customerLines.length > 0) {
-      let workingText = text;
+    // 获取所有历史客户文本（用于检测重复）
+    const allCustomerTexts = transcriptRef.current
+      .filter(line => line.speaker === 'customer')
+      .map(line => line.text)
+      .filter(text => text && text.trim());
 
-      // 从最新到最旧检查，移除所有匹配的历史段落
-      for (let i = customerLines.length - 1; i >= 0; i--) {
-        const customerLine = customerLines[i];
-        if (workingText.includes(customerLine.text)) {
-          processedText = workingText.replace(new RegExp(customerLine.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '');
-          workingText = processedText; // 继续检查处理后的文本
+    // 特殊处理：尝试移除任何历史文本的重复
+    // 阿里云ASR可能发送包含历史文本的完整结果
+    let foundHistoricalText = false;
+
+    // 首先检查上次最终文本
+    if (lastFinalTextRef.current && lastFinalTextRef.current.trim()) {
+      const lastFinal = lastFinalTextRef.current;
+      console.log('[handleTranscript] 检查上次最终文本:', lastFinal);
+
+      // 检查新文本是否以历史文本开头（最常见的情况）
+      if (processedText.startsWith(lastFinal)) {
+        const newPart = processedText.substring(lastFinal.length);
+        console.log('[handleTranscript] 移除历史前缀，新内容:', newPart);
+        if (newPart.trim()) {
+          processedText = newPart;
+          foundHistoricalText = true;
+        } else {
+          // 如果移除后为空，可能是完全相同的文本，跳过
+          console.log('[handleTranscript] 移除历史前缀后为空，跳过');
+          return;
         }
       }
+    }
+
+    // 如果没有找到历史文本，检查所有历史客户文本
+    if (!foundHistoricalText && allCustomerTexts.length > 0) {
+      // 按长度排序，先检查最长的文本
+      const sortedTexts = [...allCustomerTexts].sort((a, b) => b.length - a.length);
+
+      for (const historicalText of sortedTexts) {
+        if (!historicalText || historicalText.length < 2) continue;
+
+        // 检查新文本是否以这个历史文本开头
+        if (processedText.startsWith(historicalText)) {
+          const newPart = processedText.substring(historicalText.length);
+          console.log('[handleTranscript] 移除历史文本前缀:', historicalText, '新内容:', newPart);
+          if (newPart.trim()) {
+            processedText = newPart;
+            foundHistoricalText = true;
+            break;
+          }
+        }
+        // 检查新文本是否包含这个历史文本
+        else if (processedText.includes(historicalText)) {
+          console.log('[handleTranscript] 发现历史文本在中间:', historicalText);
+          // 尝试移除它
+          const index = processedText.indexOf(historicalText);
+          const before = processedText.substring(0, index);
+          const after = processedText.substring(index + historicalText.length);
+          const combined = (before + after).trim();
+          if (combined && combined !== processedText) {
+            console.log('[handleTranscript] 移除中间历史文本，结果:', combined);
+            processedText = combined;
+            foundHistoricalText = true;
+            break;
+          }
+        }
+      }
+    }
+      const lastFinal = lastFinalTextRef.current;
+      console.log('[handleTranscript] 上次最终文本:', lastFinal);
+
+      // 检查新文本是否以历史文本开头（最常见的情况）
+      if (processedText.startsWith(lastFinal)) {
+        const newPart = processedText.substring(lastFinal.length);
+        console.log('[handleTranscript] 移除历史前缀，新内容:', newPart);
+        if (newPart.trim()) {
+          processedText = newPart;
+        } else {
+          // 如果移除后为空，可能是完全相同的文本，跳过
+          console.log('[handleTranscript] 移除历史前缀后为空，跳过');
+          return;
+        }
+      }
+      // 检查新文本是否包含历史文本（不一定在开头）
+      else if (processedText.includes(lastFinal)) {
+        console.log('[handleTranscript] 历史文本出现在中间:', lastFinal);
+
+        // 尝试找到历史文本的位置
+        const index = processedText.indexOf(lastFinal);
+        if (index > 0) {
+          // 历史文本在中间，取之前的部分 + 之后的部分
+          const before = processedText.substring(0, index);
+          const after = processedText.substring(index + lastFinal.length);
+          const combined = (before + after).trim();
+          if (combined) {
+            console.log('[handleTranscript] 移除中间重复，结果:', combined);
+            processedText = combined;
+          }
+        }
+      }
+    }
+
+    // 对于中间结果，处理可能出现的文本重复或堆积问题
+    if (!isFinal && currentInterimTextRef.current) {
+      const currentText = currentInterimTextRef.current;
+      console.log('[handleTranscript] 当前 interim 文本:', currentText);
+
+      // 情况1：新文本以当前文本开头 - 正常增量更新
+      if (processedText.startsWith(currentText)) {
+        // 这是正常的增量更新，ASR 在不断完善同一句话
+        // 保持 processedText 不变，将替换整行
+        console.log('[handleTranscript] 正常增量更新，新增:', processedText.substring(currentText.length));
+      }
+      // 情况2：当前文本以新文本开头 - ASR 可能修正了识别，新文本更短但更准确
+      else if (currentText.startsWith(processedText)) {
+        // ASR 可能修正了之前的错误识别，新文本更准确但更短
+        // 保持 processedText 不变
+        console.log('[handleTranscript] ASR 修正识别，新文本更短但可能更准确');
+      }
+      // 情况3：堆积重复模式，如 "就是就就是美就是美国伊..."
+      else {
+        // 检查是否存在重叠部分
+        // 简单启发式：查找最长公共前缀
+        let commonPrefix = '';
+        const minLength = Math.min(currentText.length, processedText.length);
+        for (let i = 0; i < minLength; i++) {
+          if (currentText[i] === processedText[i]) {
+            commonPrefix += currentText[i];
+          } else {
+            break;
+          }
+        }
+
+        if (commonPrefix.length > 0) {
+          console.log('[handleTranscript] 检测到公共前缀:', commonPrefix);
+
+          // 检查是否是堆积模式：新文本在公共前缀后添加了内容
+          if (processedText.length > commonPrefix.length) {
+            const newPart = processedText.substring(commonPrefix.length);
+            console.log('[handleTranscript] 堆积模式，新增部分:', newPart);
+            // 使用当前文本 + 新增部分，避免重复
+            processedText = currentText + newPart;
+          }
+        } else {
+          // 没有公共前缀，可能是全新的句子
+          console.log('[handleTranscript] 没有公共前缀，可能是新句子');
+        }
+      }
+    }
+
+    // 对于最终结果，更新 lastFinalTextRef
+    if (isFinal) {
+      lastFinalTextRef.current = processedText;
     }
 
     // 如果处理后文本为空，跳过
     if (!processedText.trim()) {
+      console.log('[handleTranscript] 处理后文本为空，跳过');
       return;
     }
 
-    // 如果没有当前段落ID，创建新段落
-    if (!currentInterimLineIdRef.current) {
-      const newId = Date.now().toString();
-      currentInterimLineIdRef.current = newId;
-      currentInterimTextRef.current = processedText;
+    // 如果有当前正在进行的 interim 行且没有长停顿，更新它
+    const currentInterimId = currentInterimLineIdRef.current;
+    console.log('[handleTranscript] 当前 interim ID:', currentInterimId, 'hadLongSilence:', hadLongSilence);
+    if (currentInterimId && !hadLongSilence) {
+      // 先检查这一行是否存在于当前 transcript 中
+      const lineExists = transcriptRef.current.some(line => line.id === currentInterimId);
+      console.log('[handleTranscript] 行存在:', lineExists);
+      if (lineExists) {
+        console.log('[handleTranscript] 更新现有行:', currentInterimId, '文本:', processedText);
+        // 更新对应的行
+        setTranscript(prev => {
+          const lineIndex = prev.findIndex(line => line.id === currentInterimId);
+          if (lineIndex !== -1) {
+            const updatedPrev = [...prev];
+            updatedPrev[lineIndex] = {
+              ...updatedPrev[lineIndex],
+              text: processedText,
+              timestamp: new Date().toLocaleTimeString()
+            };
+            // 更新 transcriptRef
+            transcriptRef.current = updatedPrev;
+            // 更新当前段落文本
+            currentInterimTextRef.current = processedText;
 
-      const newTranscriptLine: TranscriptLine = {
-        id: newId,
-        speaker: 'customer',
-        text: processedText,
-        timestamp: new Date().toLocaleTimeString()
-      };
+            // 如果是最终结果，清除 interim 标记
+            if (isFinal) {
+              currentInterimLineIdRef.current = null;
+              currentInterimTextRef.current = '';
+            }
+            return updatedPrev;
+          }
+          return prev;
+        });
 
-      setTranscript(prev => [...prev, newTranscriptLine]);
-      transcriptRef.current = [...transcriptRef.current, newTranscriptLine];
-    } else {
-      // 已有当前段落，更新它
-      const currentParagraphId = currentInterimLineIdRef.current;
-
-      // 处理同一段落内的文本累加
-      let textToAdd = processedText;
-      if (currentInterimTextRef.current && processedText.startsWith(currentInterimTextRef.current)) {
-        textToAdd = processedText.substring(currentInterimTextRef.current.length);
-      }
-
-      // 如果新增文本为空，跳过
-      if (!textToAdd.trim()) {
+        // 每次文本更新时都进行关键词检测（包括中间结果）
+        identifyKeywords(processedText);
         return;
       }
-
-      // 更新段落文本
-      const newText = currentInterimTextRef.current + textToAdd;
-
-      // 更新对应的行
-      setTranscript(prev => {
-        const lineIndex = prev.findIndex(line => line.id === currentParagraphId);
-        if (lineIndex !== -1) {
-          const updatedPrev = [...prev];
-          updatedPrev[lineIndex] = {
-            ...updatedPrev[lineIndex],
-            text: newText,
-            timestamp: new Date().toLocaleTimeString()
-          };
-          // 更新 transcriptRef
-          transcriptRef.current = updatedPrev;
-          // 更新当前段落文本
-          currentInterimTextRef.current = newText;
-          return updatedPrev;
-        }
-        return prev;
-      });
     }
+
+    // 没有找到对应的行，或者有长停顿，创建新行
+    const newId = now.toString();
+    console.log('[handleTranscript] 创建新行，ID:', newId, 'isFinal:', isFinal);
+
+    // 同步更新 ref
+    if (!isFinal) {
+      // 中间结果：记录 interim 行 ID
+      currentInterimLineIdRef.current = newId;
+      currentInterimTextRef.current = processedText;
+    } else {
+      // 最终结果：确保清除 interim 标记
+      currentInterimLineIdRef.current = null;
+      currentInterimTextRef.current = '';
+    }
+
+    const newTranscriptLine: TranscriptLine = {
+      id: newId,
+      speaker: 'customer',
+      text: processedText,
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    setTranscript(prev => [...prev, newTranscriptLine]);
+    transcriptRef.current = [...transcriptRef.current, newTranscriptLine];
 
     // 每次文本更新时都进行关键词检测（包括中间结果）
     identifyKeywords(processedText);
@@ -792,22 +950,30 @@ function App() {
   // 调用前端规则引擎检测关键词
   const detectWithRuleEngine = (text: string) => {
     try {
+      console.log('[规则引擎] 开始检测文本:', text);
+      
       // 循环检测所有匹配的关键词
       let result;
+      let matchCount = 0;
+      
       do {
         result = ruleEngine.detect(text);
         if (result && result.matched) {
-          console.log('[规则引擎] 匹配成功:', result.tag, '-', result.keyword);
+          matchCount++;
+          console.log('[规则引擎] 匹配成功 #', matchCount, ':', result.tag, '-', result.keyword);
           
           // 保存当前结果到局部变量，避免闭包问题
           const currentResult = { ...result };
           
           // 检查是否已显示过这个标签（防重复）
           setRuleSuggestions(prev => {
-            if (prev.find(s => s.tag === currentResult.tag)) {
+            const exists = prev.find(s => s.tag === currentResult.tag);
+            if (exists) {
+              console.log('[规则引擎] 标签已存在，跳过:', currentResult.tag);
               return prev;
             }
             
+            console.log('[规则引擎] 添加新建议:', currentResult.tag);
             const newSuggestion: RuleSuggestion = {
               id: `${currentResult.tag}-${currentResult.timestamp}`,
               tag: currentResult.tag,
@@ -822,6 +988,12 @@ function App() {
           });
         }
       } while (result && result.matched);
+      
+      if (matchCount === 0) {
+        console.log('[规则引擎] 未检测到任何匹配');
+      } else {
+        console.log('[规则引擎] 共检测到', matchCount, '条规则');
+      }
     } catch (error) {
       console.error('[规则引擎] 检测失败:', error);
       // 如果前端规则引擎失败，降级到关键词匹配
